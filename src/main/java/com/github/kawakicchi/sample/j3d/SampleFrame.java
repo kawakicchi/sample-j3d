@@ -4,6 +4,8 @@ import java.awt.GraphicsConfiguration;
 import java.awt.Insets;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 
 import javax.media.j3d.Appearance;
 import javax.media.j3d.BoundingSphere;
@@ -18,6 +20,7 @@ import javax.swing.JPanel;
 import javax.vecmath.Color3f;
 import javax.vecmath.Vector3f;
 
+import com.sun.j3d.utils.geometry.Box;
 import com.sun.j3d.utils.geometry.Sphere;
 import com.sun.j3d.utils.universe.SimpleUniverse;
 import com.sun.j3d.utils.universe.ViewingPlatform;
@@ -30,7 +33,7 @@ public class SampleFrame extends JFrame {
 	private Canvas3D canvas;
 
 	/** 仮想空間全体 */
-	SimpleUniverse universe;
+	private SimpleUniverse universe;
 
 	public SampleFrame() {
 		setTitle("Java3D　動作確認");
@@ -54,6 +57,7 @@ public class SampleFrame extends JFrame {
 				canvas.setBounds(0, 0, width, height);
 			}
 		});
+		canvas.addKeyListener(new KeyController());
 
 		// ////////////////////////////////////////////////////
 		// 3D空間
@@ -71,18 +75,23 @@ public class SampleFrame extends JFrame {
 		appr.setMaterial(mate);
 
 		// オブジェクト設定
-		Sphere sphere = new Sphere(0.5f, appr);
 		BranchGroup grpObject = new BranchGroup();
 		TransformGroup trans = new TransformGroup();
+
 		trans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-		trans.addChild(sphere);
+
+		Sphere sphere1 = new Sphere(0.3f, appr);
+		trans.addChild(sphere1);
+		Box sphere2 = new Box(0.5f, 0.1f, 0.3f, appr);
+		trans.addChild(sphere2);
+
 		grpObject.addChild(trans);
 		universe.addBranchGraph(grpObject);
 
 		Transform3D transf = new Transform3D();
-		transf.setTranslation(new Vector3f(0.4f, 0.0f, 0.0f));
-		transf.rotY(Math.PI / 4);
-		transf.setScale(2.0f);
+		transf.setTranslation(new Vector3f(0.8f, 0.0f, 0.0f));
+		// transf.rotY(Math.PI / 4);
+		// transf.setScale(2.0f);
 		trans.setTransform(transf);
 
 		// カメラ設定
@@ -95,11 +104,74 @@ public class SampleFrame extends JFrame {
 		DirectionalLight light = new DirectionalLight(lightColor, lightDirection);
 		BoundingSphere bounds = new BoundingSphere(); // 範囲1
 		light.setInfluencingBounds(bounds); // ライトの効果範囲
-
 		BranchGroup grpLight = new BranchGroup();
 		grpLight.addChild(light);
-
 		universe.addBranchGraph(grpLight);
 	}
 
+	private class KeyController implements KeyListener {
+
+		private boolean up;
+		private boolean down;
+		private boolean left;
+		private boolean right;
+
+		public KeyController() {
+			up = false;
+			down = false;
+			left = false;
+			right = false;
+		}
+
+		public boolean isUp() {
+			return up;
+		}
+
+		public boolean isDown() {
+			return down;
+		}
+
+		public boolean isLeft() {
+			return left;
+		}
+
+		public boolean isRight() {
+			return right;
+		}
+
+		private void update(final int keyCode, final boolean press) {
+			switch (keyCode) {
+			case KeyEvent.VK_W: {
+				up = press;
+				break;
+			}
+			case KeyEvent.VK_S: {
+				down = press;
+				break;
+			}
+			case KeyEvent.VK_A: {
+				left = press;
+				break;
+			}
+			case KeyEvent.VK_D: {
+				right = press;
+				break;
+			}
+			}
+		}
+
+		@Override
+		public void keyPressed(KeyEvent e) {
+			update(e.getKeyCode(), true);
+		}
+
+		@Override
+		public void keyReleased(KeyEvent e) {
+			update(e.getKeyCode(), false);
+		}
+
+		@Override
+		public void keyTyped(KeyEvent arg0) {
+		}
+	}
 }
